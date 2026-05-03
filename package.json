@@ -1,0 +1,42 @@
+{
+  "name": "markdown-apa7th-docx",
+  "version": "0.1.0",
+  "description": "Convert Markdown documents to APA 7th edition formatted DOCX files",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "md2apa": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "cli": "tsx src/cli.ts",
+    "test": "vitest run",
+    "lint": "npm run lint:types && npm run lint:eslint",
+    "lint:types": "tsc --noEmit",
+    "lint:eslint": "eslint src/",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "docx": "^9.5.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0",
+    "unist-util-visit-parents": "^6.0.1",
+    "yaml": "^2.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.15.3",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.1",
+    "vitest": "^3.1.3"
+  }
+}
