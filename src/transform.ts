@@ -1,5 +1,14 @@
 import { visit } from "unist-util-visit";
 import type {
+  Root,
+  RootContent,
+  PhrasingContent,
+  Heading,
+  List,
+  ListItem,
+  Text,
+} from "mdast";
+import type {
   BodyElement,
   Run,
   SemanticModel,
@@ -52,18 +61,19 @@ export function transform(parsed: ParsedDocument): SemanticModel {
   // Walk mdast and build body elements
   const body: BodyElement[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mdast node types are dynamic
-  visit(mdast, (node: any) => {
+  visit(mdast, (node) => {
+    if (node.type === "yaml") return;
+
     if (node.type === "heading") {
-      const depth = node.depth as number;
-      const text = extractText(node);
+      const heading = node as Heading;
+      const text = extractText(heading);
 
       // References section is auto-generated from frontmatter — skip heading and everything after
       if (isReferencesHeading(text)) {
         return;
       }
 
-      const apaLevel = mapHeadingLevel(depth);
+      const apaLevel = mapHeadingLevel(heading.depth);
       body.push({ type: "heading", level: apaLevel, text });
       return;
     }
@@ -81,14 +91,15 @@ export function transform(parsed: ParsedDocument): SemanticModel {
     }
 
     if (node.type === "list") {
-      const ordered = node.ordered as boolean;
-      const items = (node.children as any[]).map((li: any) =>
+      const list = node as List;
+      const ordered = list.ordered ?? false;
+      const items = list.children.map((li: ListItem) =>
         processBlockChildren(li, references),
       );
       if (ordered) {
         body.push({
           type: "ordered_list",
-          start: (node.start as number) ?? 1,
+          start: list.start ?? 1,
           items,
         });
       } else {
@@ -125,22 +136,26 @@ function mapHeadingLevel(mdDepth: number): 1 | 2 | 3 | 4 | 5 {
   return 5;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mdast nodes are dynamically shaped
-function extractText(node: any): string {
-  if (node.type === "text") return node.value as string;
-  if (node.children) {
-    return (node.children as any[]).map((child: any) => extractText(child)).join("");
+function extractText(node: Heading | PhrasingContent): string {
+  if (node.type === "text") return (node as Text).value;
+  if ("children" in node && node.children) {
+    return (node.children as PhrasingContent[])
+      .map((child) => extractText(child))
+      .join("");
   }
+  if ("value" in node && typeof node.value === "string") return node.value;
   return "";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mdast inline nodes are dynamically shaped
-function processInline(node: any, references: Record<string, ReferenceEntry>): Run[] {
+function processInline(
+  node: { children?: PhrasingContent[] },
+  references: Record<string, ReferenceEntry>,
+): Run[] {
   const runs: Run[] = [];
 
   for (const child of node.children ?? []) {
     if (child.type === "text") {
-      const textRuns = expandCitations(child.value as string, references);
+      const textRuns = expandCitations(child.value, references);
       runs.push(...textRuns);
     } else if (child.type === "strong") {
       const inner = processInline(child, references).map((r) => ({
@@ -159,10 +174,10 @@ function processInline(node: any, references: Record<string, ReferenceEntry>): R
       const linkText = extractText(child);
       runs.push({ text: linkText });
       if (child.url) {
-        runs.push({ text: ` (${child.url as string})` });
+        runs.push({ text: ` (${child.url})` });
       }
     } else if (child.type === "inlineCode") {
-      runs.push({ text: child.value as string });
+      runs.push({ text: child.value });
     } else if (child.type === "break") {
       runs.push({ text: "\n" });
     }
@@ -290,23 +305,20 @@ function formatYear(ref: ReferenceEntry): string {
 
 // --- Reference formatting ---
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mdast root type is dynamic
-export function collectCitationKeys(mdast: any): Set<string> {
+export function collectCitationKeys(mdast: Root): Set<string> {
   const keys = new Set<string>();
-  visit(mdast, "text", (node: any) => {
+  visit(mdast, "text", (node: Text) => {
     const regex = /@(\w+)/g;
     let match: RegExpExecArray | null;
-    const text = node.value as string;
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(node.value)) !== null) {
       keys.add(match[1]);
     }
   });
   // Also check parenthetical citations: [@key1; @key2]
-  visit(mdast, "text", (node: any) => {
+  visit(mdast, "text", (node: Text) => {
     const regex = /\[@([\w;@.\s-]+?)\]/g;
     let match: RegExpExecArray | null;
-    const text = node.value as string;
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(node.value)) !== null) {
       match[1].split(";").forEach((k) => {
         keys.add(k.trim().replace(/^@/, ""));
       });
@@ -619,13 +631,12 @@ function ordinal(n: number): string {
 }
 
 function processBlockChildren(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mdast nodes are dynamically shaped
-  node: any,
+  node: { children: RootContent[] },
   references: Record<string, ReferenceEntry>,
 ): BodyElement[] {
   const elements: BodyElement[] = [];
 
-  for (const child of node.children ?? []) {
+  for (const child of node.children) {
     if (child.type === "paragraph") {
       const runs = processInline(child, references);
       elements.push({ type: "paragraph", runs });
@@ -639,9 +650,8 @@ function processBlockChildren(
       const children = processBlockChildren(child, references);
       elements.push({ type: "block_quote", children });
     } else if (child.type === "list") {
-      const items = child.children.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (li: any) => processBlockChildren(li, references),
+      const items = child.children.map((li: ListItem) =>
+        processBlockChildren(li, references),
       );
       if (child.ordered) {
         elements.push({

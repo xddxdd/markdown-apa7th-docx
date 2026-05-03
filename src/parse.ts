@@ -3,11 +3,12 @@ import remarkParse from "remark-parse";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import YAML from "yaml";
-import type { Frontmatter } from "./types.js";
+import type { Root } from "mdast";
+import type { Frontmatter, ReferenceEntry } from "./types.js";
 
 export interface ParsedDocument {
   frontmatter: Frontmatter;
-  mdast: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mdast Root node type varies by plugin
+  mdast: Root;
 }
 
 export function parseMarkdown(raw: string): ParsedDocument {
@@ -49,7 +50,7 @@ function extractFrontmatter(raw: string): Frontmatter {
   if (parsed.references && typeof parsed.references === "object") {
     fm.references = {};
     for (const [key, value] of Object.entries(parsed.references)) {
-      fm.references[key] = value as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      fm.references[key] = value as ReferenceEntry;
     }
   }
 
