@@ -184,6 +184,7 @@ Citation keys must match a key in frontmatter `references`. Undefined keys cause
 - **Block quotes** (`>`): for 40+ word quotations. Rendered left-indented 0.5", no quotation marks.
 - **Bullet lists** (`-`): standard markdown bullet lists.
 - **Numbered lists** (`1.`): standard markdown ordered lists.
+- **Page breaks** (`---`): thematic break creates a page break in the DOCX output. Use to start new sections on fresh pages.
 - **Bold** (`**text**`), **italic** (`*text*`), **inline code** (`` `code` ``) map to DOCX runs.
 - **Links** (`[text](url)`): render as `text (url)` — APA does not use hyperlinks.
 
