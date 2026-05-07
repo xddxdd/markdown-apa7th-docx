@@ -38,7 +38,7 @@ tests/
 | `Frontmatter` | Interface | `types.ts` | YAML frontmatter schema — title, author, references, etc. |
 | `ReferenceEntry` | Union | `types.ts` | 8 discriminated reference types (journal_article, book, etc.) |
 | `SemanticModel` | Interface | `types.ts` | IR between transform and render — titlePage, body, references |
-| `BodyElement` | Union | `types.ts` | heading, paragraph, block_quote, bullet_list, ordered_list |
+| `BodyElement` | Union | `types.ts` | heading, paragraph, block_quote, bullet_list, ordered_list, page_break |
 | `FormattedReference` | Interface | `types.ts` | Pre-formatted reference with runs + sortKey |
 | `Run` | Interface | `types.ts` | Text run with bold/italic flags — rendering primitive |
 | `APA` | Const object | `styles.ts` | All APA 7th formatting constants (margins, fonts, spacing in twips) |
@@ -57,6 +57,7 @@ tests/
 - **Citation syntax**: `@key` (narrative), `[@key]` (parenthetical), `[@key1; @key2]` (multiple), `@key[p. 45]` (with locator).
 - **Headings**: Markdown levels map 1:1 to APA levels (H1→L1 centered, H2→L2 flush-left, etc.). The paper title comes from frontmatter only — do NOT include `# Title` in the markdown body.
 - **References section**: Auto-generated from `references:` in frontmatter. Do NOT write `## References` in the markdown body.
+- **Page breaks**: Use `---` (thematic break) in markdown to create a page break in the DOCX output.
 - **Sentence case**: `toSentenceCase()` in `transform.ts` converts article titles to sentence case. Journal/book titles keep their original casing.
 
 ## ANTI-PATTERNS (THIS PROJECT)
@@ -92,3 +93,4 @@ npm run test                           # Run vitest
 - Section breaks in DOCX are implemented as separate `ISectionOptions` objects (title page, body). References get a `PageBreak` run before the heading.
 - Page numbering requires `PageNumber.CURRENT` passed as a child of `TextRun`, not standalone.
 - Running headers use a right-aligned tab stop at `TabStopPosition.MAX` with `Tab()` between running head text and page number.
+- Thematic breaks (`---`) in markdown are converted to page breaks in the DOCX output via `PageBreakElement` in the semantic model.
