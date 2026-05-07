@@ -364,6 +364,8 @@ function renderBodyElement(element: BodyElement): Paragraph[] {
       return renderBulletList(element);
     case "ordered_list":
       return renderOrderedList(element);
+    case "page_break":
+      return [new Paragraph({ children: [new PageBreak()] })];
   }
 }
 

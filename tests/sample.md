@@ -66,6 +66,8 @@ Participants were randomly assigned to either a sleep-deprived condition (24 hou
 
 > This study employed a between-subjects design to minimize carryover effects from sleep deprivation, ensuring that cognitive performance measures were independent across conditions.
 
+---
+
 # Results
 
 Performance differed significantly between groups [@smith2023; @brown2022]. The sleep-deprived group showed a 35% reduction in attention scores and a 28% decline in working memory capacity.

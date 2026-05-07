@@ -109,7 +109,7 @@ export function transform(parsed: ParsedDocument): SemanticModel {
     }
 
     if (node.type === "thematicBreak") {
-      // thematic breaks between sections — skip, section breaks are implicit
+      body.push({ type: "page_break" });
       return;
     }
   });
@@ -662,6 +662,8 @@ function processBlockChildren(
       } else {
         elements.push({ type: "bullet_list", items });
       }
+    } else if (child.type === "thematicBreak") {
+      elements.push({ type: "page_break" });
     }
   }
 

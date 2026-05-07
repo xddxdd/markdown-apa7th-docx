@@ -149,12 +149,17 @@ export interface OrderedListElement {
   items: BodyElement[][];
 }
 
+export interface PageBreakElement {
+  type: "page_break";
+}
+
 export type BodyElement =
   | HeadingElement
   | ParagraphElement
   | BlockQuoteElement
   | BulletListElement
-  | OrderedListElement;
+  | OrderedListElement
+  | PageBreakElement;
 
 // --- Citation types ---
 
